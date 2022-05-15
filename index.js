@@ -1,11 +1,16 @@
 const express = require('express');
 const morgan = require('morgan');
+const cors = require('cors');
 const app = express();
+app.use(cors())
 
 morgan.token('body', function getBody(req) {
     const body = req.body;
-    const text = `{"name": "${body.name}", "number" : "${body.number}"}`
-    return text;
+    console.log(body)
+    if (Object.keys(body).length > 0) {
+        return `{"name": "${body.name}", "number" : "${body.number}"}`
+    }
+    return "-";
 })
 
 app.use(express.json());
@@ -33,8 +38,6 @@ let persons = [
         number: '39-23-6423122'
     }
 ]
-
-
 
 app.get('/', (request, response) => {
     response.send('<h1>Hello world!</h1>')
@@ -86,7 +89,7 @@ app.post('/api/persons', (request, response) => {
     response.json(person);
 })
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Listening port ${PORT}`)
 })
