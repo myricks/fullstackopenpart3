@@ -44,9 +44,11 @@ app.get('/api/persons/:id', (request, response) => {
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    persons = persons.filter(person => person.id !== id);
-    response.status(204).end();
+    Person.findByIdAndRemove(request.params.id)
+        .then(person => {
+            response.status(204).end();
+        })
+        .catch(error => next(error));
 })
 
 app.post('/api/persons', (request, response) => {
@@ -68,6 +70,12 @@ app.post('/api/persons', (request, response) => {
     })
 
 })
+
+const errorHandler = (error, request, response, next) => {
+    response.status(404).send({ error: 'Ei toimi' })
+    next(error);
+}
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
