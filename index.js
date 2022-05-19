@@ -25,8 +25,12 @@ app.get('/', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
-    response.send(`<p>Phonebook has info for ${persons.length} people</p>
-    <p>${Date()}</p>`);
+    Person.find({})
+        .then(persons => {
+            response.send(`<p>Phonebook has info for ${persons.length} people</p>
+                <p>${Date()}</p>`);
+        })
+
 })
 
 app.get('/api/persons', (request, response) => {
@@ -38,9 +42,11 @@ app.get('/api/persons', (request, response) => {
 })
 
 app.get('/api/persons/:id', (request, response) => {
-    const id = Number(request.params.id)
-    const person = persons.find(person => person.id === id);
-    response.send(person);
+    Person.findById(request.params.id)
+        .then(person => {
+            response.json(person)
+        })
+        .catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response) => {
@@ -69,6 +75,21 @@ app.post('/api/persons', (request, response) => {
         response.json(person);
     })
 
+})
+
+app.put('/api/persons/:id', (request, response) => {
+    const body = request.body;
+
+    const person = {
+        name: body.name,
+        number: body.number,
+    }
+
+    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+        .then(updatedPerson => {
+            response.json(updatedPerson)
+        })
+        .catch(error => next(error));
 })
 
 const errorHandler = (error, request, response, next) => {
