@@ -57,7 +57,7 @@ app.delete('/api/persons/:id', (request, response) => {
         .catch(error => next(error));
 })
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
     const body = request.body;
 
     if (!body.name || !body.number) {
@@ -74,18 +74,16 @@ app.post('/api/persons', (request, response) => {
         console.log('person added to phone book');
         response.json(person);
     })
-
+        .catch(error => next(error))
 })
 
 app.put('/api/persons/:id', (request, response) => {
-    const body = request.body;
+    const { name, number } = request.body;
 
-    const person = {
-        name: body.name,
-        number: body.number,
-    }
 
-    Person.findByIdAndUpdate(request.params.id, person, { new: true })
+    Person.findByIdAndUpdate(request.params.id,
+        { name, number },
+        { new: true, runValidators: true, context: 'query' })
         .then(updatedPerson => {
             response.json(updatedPerson)
         })
@@ -93,7 +91,13 @@ app.put('/api/persons/:id', (request, response) => {
 })
 
 const errorHandler = (error, request, response, next) => {
-    response.status(404).send({ error: 'Ei toimi' })
+    console.log(error.message)
+    if (error.name === 'CastError') {
+        return response.status(400).send({ error: 'Ei toimi' })
+    } else if (error.name === 'ValidationError') {
+        return response.status(400).send({ error: error.message })
+    }
+
     next(error);
 }
 app.use(errorHandler);
